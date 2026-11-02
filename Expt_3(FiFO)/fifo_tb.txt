@@ -1,0 +1,124 @@
+
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+use IEEE.NUMERIC_STD.ALL;
+
+entity fifo_tb is
+end fifo_tb;
+
+architecture Behavioral of fifo_tb is
+
+    component fifo
+        port (
+            clk     : in  STD_LOGIC;
+            rst     : in  STD_LOGIC;
+            enw     : in  STD_LOGIC;
+            enr     : in  STD_LOGIC;
+            datain  : in  STD_LOGIC_VECTOR(7 downto 0);
+            dataout : out STD_LOGIC_VECTOR(7 downto 0);
+            empty   : out STD_LOGIC;
+            full    : out STD_LOGIC
+        );
+    end component;
+
+    signal clk     : STD_LOGIC := '0';
+    signal rst     : STD_LOGIC := '0';
+    signal enw     : STD_LOGIC := '0';
+    signal enr     : STD_LOGIC := '0';
+    signal datain  : STD_LOGIC_VECTOR(7 downto 0) := (others => '0');
+    signal dataout : STD_LOGIC_VECTOR(7 downto 0);
+    signal empty   : STD_LOGIC;
+    signal full    : STD_LOGIC;
+
+begin
+
+    uut: fifo
+        port map (
+            clk     => clk,
+            rst     => rst,
+            enw     => enw,
+            enr     => enr,
+            datain  => datain,
+            dataout => dataout,
+            empty   => empty,
+            full    => full
+        );
+
+    -- Clock generation
+    clk_process: process
+    begin
+        while true loop
+            clk <= '0';
+            wait for 5 ns;
+            clk <= '1';
+            wait for 5 ns;
+        end loop;
+    end process;
+
+    -- Test stimulus
+    stimulus: process
+    begin
+
+        -- Reset FIFO
+        rst <= '1';
+        wait for 10 ns;
+        rst <= '0';
+        wait for 10 ns;
+
+        -- Write first data
+        enw <= '1';
+        datain <= "00001010";
+        wait for 10 ns;
+
+        -- Write second data
+        datain <= "00010100";
+        wait for 10 ns;
+
+        -- Write third data
+        datain <= "00011110";
+        wait for 10 ns;
+
+        -- Stop writing
+        enw <= '0';
+        wait for 10 ns;
+
+        -- Read first data
+        enr <= '1';
+        wait for 10 ns;
+
+        -- Read second data
+        wait for 10 ns;
+
+        -- Read third data
+        wait for 10 ns;
+
+        -- Stop reading
+        enr <= '0';
+        wait for 10 ns;
+
+        -- Fill FIFO completely
+        enw <= '1';
+
+        for i in 0 to 15 loop
+            datain <= STD_LOGIC_VECTOR(to_unsigned(i, 8));
+            wait for 10 ns;
+        end loop;
+
+        -- Stop writing
+        enw <= '0';
+        wait for 10 ns;
+
+        -- Read all FIFO entries
+        enr <= '1';
+
+        for i in 0 to 15 loop
+            wait for 10 ns;
+        end loop;
+
+        -- Stop reading
+        enr <= '0';
+
+        wait;
+    end process;
+
+end Behavioral;

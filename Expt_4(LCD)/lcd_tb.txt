@@ -1,0 +1,61 @@
+--optional, do if asked
+
+
+
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+
+entity LCD_interface_tb is
+end LCD_interface_tb;
+
+architecture Behavioral of LCD_interface_tb is
+
+    component LCD_interface
+        Port (
+            clk    : in  STD_LOGIC_VECTOR(0 downto 0);
+            lcd_rw : out STD_LOGIC_VECTOR(0 downto 0);
+            lcd_e  : out STD_LOGIC_VECTOR(0 downto 0);
+            lcd_rs : out STD_LOGIC_VECTOR(0 downto 0);
+            data   : out STD_LOGIC_VECTOR(7 downto 0)
+        );
+    end component;
+
+    signal clk    : STD_LOGIC_VECTOR(0 downto 0) := "0";
+    signal lcd_rw : STD_LOGIC_VECTOR(0 downto 0);
+    signal lcd_e  : STD_LOGIC_VECTOR(0 downto 0);
+    signal lcd_rs : STD_LOGIC_VECTOR(0 downto 0);
+    signal data   : STD_LOGIC_VECTOR(7 downto 0);
+
+begin
+
+    uut: LCD_interface
+        port map (
+            clk    => clk,
+            lcd_rw => lcd_rw,
+            lcd_e  => lcd_e,
+            lcd_rs => lcd_rs,
+            data   => data
+        );
+
+    -- Clock generation
+    clk_process: process
+    begin
+        while true loop
+            clk <= "0";
+            wait for 5 ns;
+            clk <= "1";
+            wait for 5 ns;
+        end loop;
+    end process;
+
+    -- Simulation process
+    stimulus: process
+    begin
+        -- Allow LCD controller to execute
+        wait for 250 ms;
+
+        wait;
+    end process;
+
+end Behavioral;
+

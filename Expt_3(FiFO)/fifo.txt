@@ -1,0 +1,81 @@
+
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+use IEEE.NUMERIC_STD.ALL;
+
+entity fifo is
+    port (
+        clk      : in  STD_LOGIC;
+        rst      : in  STD_LOGIC;
+        enw      : in  STD_LOGIC; -- Write enable
+        enr      : in  STD_LOGIC; -- Read enable
+        datain   : in  STD_LOGIC_VECTOR(7 downto 0);
+        dataout  : out STD_LOGIC_VECTOR(7 downto 0);
+        empty    : out STD_LOGIC;
+        full     : out STD_LOGIC
+    );
+end fifo;
+
+architecture Behavioral of fifo is
+
+    constant DEPTH : integer := 16;
+
+    type memory_type is array (0 to DEPTH-1)
+        of STD_LOGIC_VECTOR(7 downto 0);
+
+    signal memory : memory_type :=
+        (others => (others => '0'));
+
+    signal readptr, writeptr : unsigned(3 downto 0) :=
+        (others => '0');
+
+    signal count : integer range 0 to DEPTH := 0;
+
+    signal dataout_reg : STD_LOGIC_VECTOR(7 downto 0) :=
+        (others => '0');
+
+begin
+
+    dataout <= dataout_reg;
+
+    empty <= '1' when count = 0 else '0';
+    full  <= '1' when count = DEPTH else '0';
+
+    process(clk, rst)
+    begin
+
+        if rst = '1' then
+            readptr     <= (others => '0');
+            writeptr    <= (others => '0');
+            count       <= 0;
+            dataout_reg <= (others => '0');
+
+        elsif rising_edge(clk) then
+
+            -- Write operation
+            if (enw = '1' and count < DEPTH) then
+                memory(to_integer(writeptr)) <= datain;
+                writeptr <= writeptr + 1;
+            end if;
+
+            -- Read operation
+            if (enr = '1' and count > 0) then
+                dataout_reg <= memory(to_integer(readptr));
+                readptr <= readptr + 1;
+            end if;
+
+            -- Update FIFO count
+            if (enw = '1' and count < DEPTH) and
+               not (enr = '1' and count > 0) then
+                count <= count + 1;
+
+            elsif (enr = '1' and count > 0) and
+                  not (enw = '1' and count < DEPTH) then
+                count <= count - 1;
+            end if;
+
+        end if;
+
+    end process;
+
+end Behavioral;

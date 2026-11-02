@@ -1,0 +1,90 @@
+
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+
+entity prr_tb is
+end prr_tb;
+
+architecture Behavioral of prr_tb is
+
+    component prr
+        Port (
+            clr       : in  STD_LOGIC;
+            sel       : in  STD_LOGIC_VECTOR(1 downto 0);
+            shf_load  : in  STD_LOGIC;
+            serial_in : in  STD_LOGIC;
+            clk       : in  STD_LOGIC;
+            d         : in  STD_LOGIC_VECTOR(3 downto 0);
+            q         : out STD_LOGIC_VECTOR(3 downto 0)
+        );
+    end component;
+
+    signal clr       : STD_LOGIC := '1';
+    signal sel       : STD_LOGIC_VECTOR(1 downto 0) := "00";
+    signal shf_load  : STD_LOGIC := '0';
+    signal serial_in : STD_LOGIC := '0';
+    signal clk       : STD_LOGIC := '0';
+    signal d         : STD_LOGIC_VECTOR(3 downto 0) := "0000";
+    signal q         : STD_LOGIC_VECTOR(3 downto 0);
+
+begin
+
+    uut: prr
+        port map (
+            clr       => clr,
+            sel       => sel,
+            shf_load  => shf_load,
+            serial_in => serial_in,
+            clk       => clk,
+            d         => d,
+            q         => q
+        );
+
+    -- Clock generation
+    clk_process: process
+    begin
+        while true loop
+            clk <= '0';
+            wait for 5 ns;
+            clk <= '1';
+            wait for 5 ns;
+        end loop;
+    end process;
+
+    -- Test stimulus
+    stimulus: process
+    begin
+
+        -- Asynchronous clear
+        clr <= '0';
+        wait for 10 ns;
+        clr <= '1';
+
+        -- Parallel Load: q = 1010
+        d <= "1010";
+        shf_load <= '0';
+        wait for 10 ns;
+
+        -- Shift Right
+        shf_load <= '1';
+        sel <= "00";
+        serial_in <= '1';
+        wait for 10 ns;
+
+        -- Shift Left
+        sel <= "01";
+        serial_in <= '0';
+        wait for 10 ns;
+
+        -- Rotate Left
+        sel <= "10";
+        wait for 10 ns;
+
+        -- Rotate Right
+        sel <= "11";
+        wait for 10 ns;
+
+        wait;
+    end process;
+
+end Behavioral;

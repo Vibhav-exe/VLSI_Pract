@@ -1,0 +1,84 @@
+
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+use IEEE.NUMERIC_STD.ALL;
+
+entity LCD_interface is
+    Port (
+        clk    : in  STD_LOGIC_VECTOR(0 downto 0);
+        lcd_rw : out STD_LOGIC_VECTOR(0 downto 0);
+        lcd_e  : out STD_LOGIC_VECTOR(0 downto 0);
+        lcd_rs : out STD_LOGIC_VECTOR(0 downto 0);
+        data   : out STD_LOGIC_VECTOR(7 downto 0)
+    );
+end LCD_interface;
+
+architecture Behavioral of LCD_interface is
+
+    constant N : integer := 17;
+
+    type arr is array (1 to N) of
+        STD_LOGIC_VECTOR(7 downto 0);
+
+    constant data_s : arr := (
+        X"38", -- 8-bit mode, 2-line display
+        X"0C", -- Display ON, cursor OFF
+        X"06", -- Entry mode
+        X"01", -- Clear display
+        X"C0", -- Move cursor to second line
+        X"57", -- W
+        X"45", -- E
+        X"4C", -- L
+        X"43", -- C
+        X"4F", -- O
+        X"4D", -- M
+        X"45", -- E
+        X"20", -- Space
+        X"45", -- E
+        X"4E", -- N
+        X"54", -- T
+        X"43"  -- C
+    );
+
+begin
+
+    lcd_rw(0) <= '0';
+
+    process(clk(0))
+        variable i : integer range 0 to 2000000 := 0;
+        variable j : integer range 1 to N := 1;
+
+    begin
+        if rising_edge(clk(0)) then
+
+            if i < 2000000 then
+                i := i + 1;
+
+            else
+                i := 0;
+
+                if j <= 5 then
+                    lcd_rs(0) <= '0';
+                else
+                    lcd_rs(0) <= '1';
+                end if;
+
+                data <= data_s(j);
+                lcd_e(0) <= '1';
+
+                if j < N then
+                    j := j + 1;
+                else
+                    j := 5;
+                end if;
+
+            end if;
+
+            if i = 100000 then
+                lcd_e(0) <= '0';
+            end if;
+
+        end if;
+    end process;
+
+end Behavioral;
